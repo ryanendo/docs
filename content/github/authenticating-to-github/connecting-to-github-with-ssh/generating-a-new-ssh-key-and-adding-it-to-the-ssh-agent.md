@@ -221,7 +221,72 @@ If you are using macOS or Linux, you may need to update your SSH client or insta
   > Enter a file in which to save the key (/c/Users/<em>you</em>/.ssh/id_ed25519_sk):<em>[Press enter]</em>
   ```
 
-  {% endwindows %}
+  {% includes sftp client and server support.
+
+Once again, we would like to thank the OpenSSH community for their
+continued support of the project, especially those who contributed
+code or patches, reported bugs, tested snapshots or donated to the
+project. More information on donations may be found at:
+https://www.openssh.com/donations.html
+
+Future deprecation notice
+=========================
+
+It is now possible[1] to perform chosen-prefix attacks against the
+SHA-1 hash algorithm for less than USD$50K. For this reason, we will
+be disabling the "ssh-rsa" public key signature algorithm that depends
+on SHA-1 by default in a near-future release.
+
+This algorithm is unfortunately still used widely despite the
+existence of better alternatives, being the only remaining public key
+signature algorithm specified by the original SSH RFCs.
+
+The better alternatives include:
+
+ * The RFC8332 RSA SHA-2 signature algorithms rsa-sha2-256/512. These
+   algorithms have the advantage of using the same key type as
+   "ssh-rsa" but use the safe SHA-2 hash algorithms. These have been
+   supported since OpenSSH 7.2 and are already used by default if the
+   client and server support them.
+
+ * The ssh-ed25519 signature algorithm. It has been supported in
+   OpenSSH since release 6.5.
+
+ * The RFC5656 ECDSA algorithms: ecdsa-sha2-nistp256/384/521. These
+   have been supported by OpenSSH since release 5.7.
+
+To check whether a server is using the weak ssh-rsa public key
+algorithm for host authentication, try to connect to it after
+removing the ssh-rsa algorithm from ssh(1)'s allowed list:
+
+    ssh -oHostKeyAlgorithms=-ssh-rsa user@host
+
+If the host key verification fails and no other supported host key
+types are available, the server software on that host should be
+upgraded.
+
+A future release of OpenSSH will enable UpdateHostKeys by default
+to allow the client to automatically migrate to better algorithms.
+Users may consider enabling this option manually.
+
+[1] "SHA-1 is a Shambles: First Chosen-Prefix Collision on SHA-1 and
+    Application to the PGP Web of Trust" Leurent, G and Peyrin, T
+    (2020) https://eprint.iacr.org/2020/014.pdf
+
+Security
+========
+
+ * ssh(1), sshd(8), ssh-keygen(1): this release removes the "ssh-rsa"
+   (RSA/SHA1) algorithm from those accepted for certificate signatures
+   (i.e. the client and server CASignatureAlgorithms option) and will
+   use the rsa-sha2-512 signature algorithm by default when the
+   ssh-keygen(1) CA signs new certificates.
+
+   Certificates are at special risk to the aforementioned SHA1
+   collision vulnerability as an attacker has effectively unlimited
+   time in which to craft a collision that yields them a valid
+   certificate, far more than the relatively brief LoginGraceTime
+   window that they have to forge a host %}
 
   {% linux %}
 
